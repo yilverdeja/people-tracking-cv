@@ -14,3 +14,5 @@ Using the haarcascade frontal face and eye models.
 
 -   [ ] Create a web worker to run the face detection on a seperate thread and make the browser more accessible and interactible
 -   [ ] Implement a DNN model to work with confidence levels
+-   [ ] Not responsive (Canvas needs to adjust to the Webcam size, not the parent div. Works on PC, but not on mobile due to vertical view)
+-   [ ] Add threshold input
