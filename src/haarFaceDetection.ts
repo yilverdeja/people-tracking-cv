@@ -15,72 +15,74 @@ export async function loadHaarFaceModels() {
 	}
 }
 
-/**
- * Detect faces and eyes from the input image and return their coordinates.
- * See https://docs.opencv.org/master/d2/d99/tutorial_js_face_detection.html
- * @param {cv.Mat} img Input image
- * @returns {Object} An object containing arrays of face and eye coordinates.
- */
-export async function detectHaarFace(img: cv.Mat) {
-	const gray = new cv.Mat();
-	cv.cvtColor(img, gray, cv.COLOR_RGBA2GRAY, 0);
+export class FaceDetector {
+	// loads classifiers once to be reused
+	private faceCascade: cv.CascadeClassifier;
+	private eyeCascade: cv.CascadeClassifier;
 
-	const faces = new cv.RectVector();
-	const faceCascade = new cv.CascadeClassifier();
-	const eyeCascade = new cv.CascadeClassifier();
-	// Load pre-trained classifiers
-	faceCascade.load('haarcascade_frontalface_default.xml');
-	eyeCascade.load('haarcascade_eye.xml');
-
-	// Detect faces
-	const msize = new cv.Size(0, 0);
-	faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
-
-	const detections: {
-		faces: { x: number; y: number; width: number; height: number }[];
-		eyes: { x: number; y: number; width: number; height: number }[][];
-	} = {
-		faces: [],
-		eyes: [],
-	};
-
-	for (let i = 0; i < faces.size(); ++i) {
-		const face = faces.get(i);
-		detections.faces.push({
-			x: face.x,
-			y: face.y,
-			width: face.width,
-			height: face.height,
-		});
-
-		// Detect eyes within face ROI
-		const roiGray = gray.roi(face);
-		const eyes = new cv.RectVector();
-		eyeCascade.detectMultiScale(roiGray, eyes);
-		let eyesArray: {
-			x: number;
-			y: number;
-			width: number;
-			height: number;
-		}[] = [];
-		for (let j = 0; j < eyes.size(); ++j) {
-			const eye = eyes.get(j);
-			eyesArray.push({
-				x: eye.x + face.x, // Adjust coordinates relative to the full image
-				y: eye.y + face.y,
-				width: eye.width,
-				height: eye.height,
-			});
-		}
-		detections.eyes.push(eyesArray);
-		roiGray.delete();
-		eyes.delete();
+	constructor() {
+		this.faceCascade = new cv.CascadeClassifier();
+		this.eyeCascade = new cv.CascadeClassifier();
 	}
 
-	gray.delete();
-	faceCascade.delete();
-	eyeCascade.delete();
-	faces.delete();
+	async loadClassifiers(): Promise<void> {
+		const faceLoaded = await this.faceCascade.load(
+			'haarcascade_frontalface_default.xml'
+		);
+		const eyeLoaded = await this.eyeCascade.load('haarcascade_eye.xml');
 
-	return detections;
+		if (!faceLoaded || !eyeLoaded) {
+			throw new Error('Failed to load classifiers.');
+		}
+	}
+
+	async detectFaces(
+		img: cv.Mat
+	): Promise<{ faces: cv.Rect[]; eyes: cv.Rect[][] }> {
+		// create gray image
+		const gray = new cv.Mat();
+		cv.cvtColor(img, gray, cv.COLOR_RGBA2GRAY, 0);
+
+		const faces = new cv.RectVector();
+		const msize = new cv.Size(0, 0);
+		this.faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
+
+		const detections: { faces: cv.Rect[]; eyes: cv.Rect[][] } = {
+			faces: [],
+			eyes: [],
+		};
+
+		for (let i = 0; i < faces.size(); ++i) {
+			const face = faces.get(i);
+			detections.faces.push(face);
+
+			// Detect eyes within face ROI
+			const roiGray = gray.roi(face);
+			const eyes = new cv.RectVector();
+			this.eyeCascade.detectMultiScale(roiGray, eyes);
+			const eyesArray = [];
+			for (let j = 0; j < eyes.size(); ++j) {
+				const eye = eyes.get(j);
+				eyesArray.push({
+					x: eye.x + face.x, // Adjust coordinates relative to the full image
+					y: eye.y + face.y,
+					width: eye.width,
+					height: eye.height,
+				});
+			}
+			detections.eyes.push(eyesArray);
+			roiGray.delete();
+			eyes.delete();
+		}
+
+		gray.delete();
+		faces.delete();
+
+		return detections;
+	}
+
+	dispose(): void {
+		this.faceCascade.delete();
+		this.eyeCascade.delete();
+	}
 }

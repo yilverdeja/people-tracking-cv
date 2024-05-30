@@ -3,23 +3,23 @@
 import Webcam from 'react-webcam';
 import cv from '@techstark/opencv-js';
 import { useEffect, useRef, useState } from 'react';
-import { detectHaarFace, loadHaarFaceModels } from '@/haarFaceDetection';
+import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 
 export default function Home() {
-	const [modelLoaded, setModelLoaded] = useState(false);
+	const [detector, setDetector] = useState<FaceDetector | null>(null);
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	// Load Model
 	useEffect(() => {
 		loadHaarFaceModels().then(() => {
-			setModelLoaded(true);
+			setDetector(new FaceDetector());
 		});
 	}, []);
 
 	// Use Model
 	useEffect(() => {
-		if (!modelLoaded) return;
+		if (!detector) return;
 
 		const detectFace = async () => {
 			const imageSrc = webcamRef.current!.getScreenshot();
@@ -32,7 +32,8 @@ export default function Home() {
 				img.onload = resolve;
 			});
 			const imgMat = cv.imread(img);
-			const detections = await detectHaarFace(imgMat);
+			await detector.loadClassifiers();
+			const detections = await detector.detectFaces(imgMat);
 
 			const context = canvasRef.current!.getContext('2d')!;
 			context.clearRect(
@@ -69,8 +70,9 @@ export default function Home() {
 		nextTick();
 		return () => {
 			cancelAnimationFrame(handle);
+			detector.dispose();
 		};
-	}, [modelLoaded]);
+	}, [detector]);
 
 	return (
 		<main>
@@ -78,7 +80,7 @@ export default function Home() {
 			<div className="relative w-[640px] h-[360px]">
 				<Webcam
 					ref={webcamRef}
-					className="absolute h-full w-full top-0 left-0 border-black border-2"
+					className="absolute h-full w-full top-0 left-0"
 					screenshotFormat="image/jpeg"
 					videoConstraints={{
 						width: 1280,
@@ -89,12 +91,12 @@ export default function Home() {
 				/>
 				<canvas
 					ref={canvasRef}
-					className="absolute h-full w-full top-0 left-0 border-green-500 border-2"
+					className="absolute h-full w-full top-0 left-0"
 					width={640}
 					height={360}
 				/>
 			</div>
-			{!modelLoaded && <div>Loading Haar-cascade face model...</div>}
+			{!detector && <div>Loading Haar-cascade face model...</div>}
 		</main>
 	);
 }
