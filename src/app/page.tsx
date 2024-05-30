@@ -8,8 +8,7 @@ import { detectHaarFace, loadHaarFaceModels } from '@/haarFaceDetection';
 export default function Home() {
 	const [modelLoaded, setModelLoaded] = useState(false);
 	const webcamRef = useRef<Webcam>(null);
-	const imgRef = useRef<HTMLImageElement>(null);
-	const faceImgRef = useRef<HTMLCanvasElement>(null);
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	// Load Model
 	useEffect(() => {
@@ -27,21 +26,39 @@ export default function Home() {
 			console.log('detect face');
 			if (!imageSrc) return;
 
-			return new Promise<void>((resolve) => {
-				imgRef.current!.src = imageSrc;
-				imgRef.current!.onload = async () => {
-					try {
-						const img = cv.imread(imgRef.current!);
-						const newImg = await detectHaarFace(img);
-						cv.imshow(faceImgRef.current!, newImg);
-						img.delete();
-						resolve();
-					} catch (error) {
-						console.error(error);
-						resolve();
-					}
-				};
+			const img = new Image();
+			img.src = imageSrc;
+			await new Promise((r) => {
+				img.onload = r;
 			});
+			const imgMat = cv.imread(img);
+			const detections = await detectHaarFace(imgMat);
+
+			const context = canvasRef.current!.getContext('2d')!;
+			context.clearRect(
+				0,
+				0,
+				canvasRef.current!.width,
+				canvasRef.current!.height
+			);
+
+			// Draw detections on canvas
+			detections.faces.forEach((face, index) => {
+				// Draw rectangle for the face
+				context.strokeStyle = 'red';
+				context.lineWidth = 2;
+				context.strokeRect(face.x, face.y, face.width, face.height);
+
+				// Draw rectangles for the eyes within this face
+				const eyesInFace = detections.eyes[index];
+				eyesInFace.forEach((eye) => {
+					context.strokeStyle = 'blue';
+					context.lineWidth = 1;
+					context.strokeRect(eye.x, eye.y, eye.width, eye.height);
+				});
+			});
+
+			imgMat.delete();
 		};
 
 		let handle: number;
@@ -61,14 +78,23 @@ export default function Home() {
 	return (
 		<main>
 			<h1>NextJS Object Detection</h1>
-			<Webcam
-				ref={webcamRef}
-				className="webcam"
-				screenshotFormat="image/jpeg"
-				mirrored
-			/>
-			<img ref={imgRef} className="hidden" alt="input" />
-			<canvas ref={faceImgRef} className="outputImage" />
+			<div className="relative w-[640px] h-[360px]">
+				<Webcam
+					ref={webcamRef}
+					className="absolute h-full w-full top-0 left-0 border-black border-2"
+					screenshotFormat="image/jpeg"
+					videoConstraints={{
+						width: 1280,
+						height: 720,
+						facingMode: 'user',
+					}}
+					mirrored
+				/>
+				<canvas
+					ref={canvasRef}
+					className="absolute h-full w-full top-0 left-0 border-green-500 border-2"
+				/>
+			</div>
 			{!modelLoaded && <div>Loading Haar-cascade face model...</div>}
 		</main>
 	);
