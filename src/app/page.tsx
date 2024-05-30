@@ -6,11 +6,6 @@ import { useEffect, useRef, useState } from 'react';
 import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 import WebcamDetector from './components/WebcamDetector';
 
-const size = {
-	width: 640,
-	height: 360,
-};
-
 const minNeighborsThresholds = [2, 3, 4, 5];
 
 export default function Home() {
@@ -88,7 +83,11 @@ export default function Home() {
 			<h2 className="text-xl">
 				Change the threshold to filter the detected objects
 			</h2>
-			<WebcamDetector webcamRef={webcamRef} canvasRef={canvasRef} />
+			<WebcamDetector
+				modelLoaded={detector !== null}
+				webcamRef={webcamRef}
+				canvasRef={canvasRef}
+			/>
 			{detector && (
 				<div>
 					<p>Set thresholds</p>
