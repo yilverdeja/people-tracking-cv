@@ -23,13 +23,13 @@ export default function Home() {
 
 		const detectFace = async () => {
 			const imageSrc = webcamRef.current!.getScreenshot();
-			console.log('detect face');
 			if (!imageSrc) return;
 
 			const img = new Image();
+
 			img.src = imageSrc;
-			await new Promise((r) => {
-				img.onload = r;
+			await new Promise((resolve) => {
+				img.onload = resolve;
 			});
 			const imgMat = cv.imread(img);
 			const detections = await detectHaarFace(imgMat);
@@ -42,14 +42,11 @@ export default function Home() {
 				canvasRef.current!.height
 			);
 
-			// Draw detections on canvas
 			detections.faces.forEach((face, index) => {
-				// Draw rectangle for the face
 				context.strokeStyle = 'red';
 				context.lineWidth = 2;
 				context.strokeRect(face.x, face.y, face.width, face.height);
 
-				// Draw rectangles for the eyes within this face
 				const eyesInFace = detections.eyes[index];
 				eyesInFace.forEach((eye) => {
 					context.strokeStyle = 'blue';
@@ -93,6 +90,8 @@ export default function Home() {
 				<canvas
 					ref={canvasRef}
 					className="absolute h-full w-full top-0 left-0 border-green-500 border-2"
+					width={640}
+					height={360}
 				/>
 			</div>
 			{!modelLoaded && <div>Loading Haar-cascade face model...</div>}
