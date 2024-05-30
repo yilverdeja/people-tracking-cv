@@ -5,8 +5,16 @@ import cv from '@techstark/opencv-js';
 import { useEffect, useRef, useState } from 'react';
 import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 
+const size = {
+	width: 640,
+	height: 360,
+};
+
+const minNeighborsThresholds = [2, 3, 4, 5];
+
 export default function Home() {
 	const [detector, setDetector] = useState<FaceDetector | null>(null);
+	const [threshold, setThreshold] = useState(2);
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -70,14 +78,19 @@ export default function Home() {
 		nextTick();
 		return () => {
 			cancelAnimationFrame(handle);
-			detector.dispose();
 		};
 	}, [detector]);
 
 	return (
 		<main>
-			<h1>NextJS Object Detection</h1>
-			<div className="relative w-[640px] h-[360px]">
+			<h1 className="text-3xl font-bold">People Tracker</h1>
+			<h2 className="text-xl">
+				Change the threshold to filter the detected objects
+			</h2>
+			<div
+				className="relative"
+				style={{ width: size.width, height: size.height }}
+			>
 				<Webcam
 					ref={webcamRef}
 					className="absolute h-full w-full top-0 left-0"
@@ -92,10 +105,31 @@ export default function Home() {
 				<canvas
 					ref={canvasRef}
 					className="absolute h-full w-full top-0 left-0"
-					width={640}
-					height={360}
+					width={size.width}
+					height={size.height}
 				/>
 			</div>
+			{detector && (
+				<div>
+					<p>Set thresholds</p>
+					<div className="grid grid-cols-5">
+						{minNeighborsThresholds.map((t, index) => (
+							<button
+								key={index}
+								className="rounded-md bg-blue-400 m-2 py-4 px-8 disabled:bg-gray-400"
+								type="button"
+								onClick={() => {
+									setThreshold(t);
+									detector?.setMinNeighbors(t);
+								}}
+								disabled={threshold === t}
+							>
+								{t}
+							</button>
+						))}
+					</div>
+				</div>
+			)}
 			{!detector && <div>Loading Haar-cascade face model...</div>}
 		</main>
 	);

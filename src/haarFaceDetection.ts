@@ -19,10 +19,22 @@ export class FaceDetector {
 	// loads classifiers once to be reused
 	private faceCascade: cv.CascadeClassifier;
 	private eyeCascade: cv.CascadeClassifier;
+	scaleFactor: number;
+	minNeighbors: number;
 
 	constructor() {
 		this.faceCascade = new cv.CascadeClassifier();
 		this.eyeCascade = new cv.CascadeClassifier();
+		this.scaleFactor = 1.1;
+		this.minNeighbors = 3;
+	}
+
+	setScaleFactor(scaleFactor: number): void {
+		this.scaleFactor = scaleFactor;
+	}
+
+	setMinNeighbors(minNeighbors: number): void {
+		this.minNeighbors = minNeighbors;
 	}
 
 	async loadClassifiers(): Promise<void> {
@@ -45,7 +57,16 @@ export class FaceDetector {
 
 		const faces = new cv.RectVector();
 		const msize = new cv.Size(0, 0);
-		this.faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
+		console.log(this.scaleFactor, this.minNeighbors);
+		this.faceCascade.detectMultiScale(
+			gray,
+			faces,
+			this.scaleFactor,
+			this.minNeighbors,
+			0,
+			msize,
+			msize
+		);
 
 		const detections: { faces: cv.Rect[]; eyes: cv.Rect[][] } = {
 			faces: [],
