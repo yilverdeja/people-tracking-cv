@@ -57,7 +57,6 @@ export class FaceDetector {
 
 		const faces = new cv.RectVector();
 		const msize = new cv.Size(0, 0);
-		console.log(this.scaleFactor, this.minNeighbors);
 		this.faceCascade.detectMultiScale(
 			gray,
 			faces,

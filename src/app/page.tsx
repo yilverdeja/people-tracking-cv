@@ -4,6 +4,7 @@ import Webcam from 'react-webcam';
 import cv from '@techstark/opencv-js';
 import { useEffect, useRef, useState } from 'react';
 import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
+import WebcamDetector from './components/WebcamDetector';
 
 const size = {
 	width: 640,
@@ -87,28 +88,7 @@ export default function Home() {
 			<h2 className="text-xl">
 				Change the threshold to filter the detected objects
 			</h2>
-			<div
-				className="relative"
-				style={{ width: size.width, height: size.height }}
-			>
-				<Webcam
-					ref={webcamRef}
-					className="absolute h-full w-full top-0 left-0"
-					screenshotFormat="image/jpeg"
-					videoConstraints={{
-						width: 1280,
-						height: 720,
-						facingMode: 'user',
-					}}
-					mirrored
-				/>
-				<canvas
-					ref={canvasRef}
-					className="absolute h-full w-full top-0 left-0"
-					width={size.width}
-					height={size.height}
-				/>
-			</div>
+			<WebcamDetector webcamRef={webcamRef} canvasRef={canvasRef} />
 			{detector && (
 				<div>
 					<p>Set thresholds</p>
