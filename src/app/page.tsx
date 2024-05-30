@@ -90,7 +90,7 @@ export default function Home() {
 			/>
 			{detector && (
 				<div>
-					<p>Set thresholds</p>
+					<p>Set Min Neighbors</p>
 					<div className="grid grid-cols-5">
 						{minNeighborsThresholds.map((t, index) => (
 							<button
@@ -109,7 +109,6 @@ export default function Home() {
 					</div>
 				</div>
 			)}
-			{!detector && <div>Loading Haar-cascade face model...</div>}
 		</main>
 	);
 }
