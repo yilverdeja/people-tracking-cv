@@ -5,6 +5,7 @@ import cv from '@techstark/opencv-js';
 import { useEffect, useRef, useState } from 'react';
 import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 import WebcamDetector from './components/WebcamDetector';
+import { drawBoundingBox } from '@/utils/canvasUtils';
 
 const minNeighborsThresholds = [2, 3, 4, 5];
 
@@ -48,15 +49,27 @@ export default function Home() {
 			);
 
 			detections.faces.forEach((face, index) => {
-				context.strokeStyle = 'red';
-				context.lineWidth = 2;
-				context.strokeRect(face.x, face.y, face.width, face.height);
+				drawBoundingBox(
+					context,
+					face.x,
+					face.y,
+					face.width,
+					face.height,
+					'red',
+					2
+				);
 
 				const eyesInFace = detections.eyes[index];
 				eyesInFace.forEach((eye) => {
-					context.strokeStyle = 'blue';
-					context.lineWidth = 1;
-					context.strokeRect(eye.x, eye.y, eye.width, eye.height);
+					drawBoundingBox(
+						context,
+						eye.x,
+						eye.y,
+						eye.width,
+						eye.height,
+						'blue',
+						2
+					);
 				});
 			});
 

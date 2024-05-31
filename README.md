@@ -16,3 +16,5 @@ Using the haarcascade frontal face and eye models.
 -   [ ] Implement a DNN model to work with confidence levels
 -   [ ] Not responsive (Canvas needs to adjust to the Webcam size, not the parent div. Works on PC, but not on mobile due to vertical view)
 -   [ ] Add threshold input
+-   [x] Create a class / utility to render the boxes on a canvas
+-   [ ] Encapsulate usage of different models in different pages

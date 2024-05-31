@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import WebcamDetector from '../components/WebcamDetector';
 import ObjectDetector from '@/cocossdObjectDetection';
+import { drawBoundingBox } from '@/utils/canvasUtils';
 
 const minScoreThresholds = [0.3, 0.5, 0.7, 0.9];
 
@@ -53,10 +54,8 @@ export default function Page() {
 			predictions
 				.filter((prediction) => prediction.class === 'person')
 				.forEach((prediction) => {
-					context.strokeStyle = 'red';
-					context.lineWidth = 2;
 					const [x, y, width, height] = prediction.bbox;
-					context.strokeRect(x, y, width, height);
+					drawBoundingBox(context, x, y, width, height, 'red', 2);
 				});
 		};
 
