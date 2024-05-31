@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import Webcam from 'react-webcam';
-import React, { useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
 	modelLoaded: boolean;
@@ -10,18 +11,49 @@ interface Props {
 	height?: number;
 }
 
-const WebcamDetector = ({
-	modelLoaded,
-	webcamRef,
-	canvasRef,
-	width = 640,
-	height = 360,
-}: Props) => {
-	const loadingCanvasRef = useRef(null);
+const WebcamDetector = ({ modelLoaded, webcamRef, canvasRef }: Props) => {
+	const [dimensions, setDimensions] = useState({ width: 640, height: 360 });
+
+	// sets the width and height based on the webcam video size
+	const updateVideoDimensions = () => {
+		if (webcamRef.current && webcamRef.current.video) {
+			const video = webcamRef.current.video;
+			const aspectRatio = video.videoWidth / video.videoHeight;
+			let width = 640;
+			let height = Math.round(width / aspectRatio);
+
+			if (window.innerWidth < 640) {
+				width = window.innerWidth;
+				height = Math.round(width / aspectRatio);
+			}
+
+			setDimensions({ width, height });
+		}
+	};
+
+	// add event listeners for resizing
+	useEffect(() => {
+		window.addEventListener('resize', updateVideoDimensions);
+		return () =>
+			window.removeEventListener('resize', updateVideoDimensions);
+	}, []);
+
+	// updates the dimensions when the video is loaded
+	useEffect(() => {
+		if (webcamRef.current) {
+			webcamRef.current.video?.addEventListener(
+				'loadedmetadata',
+				updateVideoDimensions
+			);
+		}
+	}, [webcamRef]);
 
 	if (modelLoaded)
 		return (
-			<div className="relative" style={{ width, height }}>
+			<div
+				className="relative"
+				style={{ width: dimensions.width, height: dimensions.height }}
+			>
 				<Webcam
 					ref={webcamRef}
 					className="absolute h-full w-full top-0 left-0"
@@ -36,8 +68,8 @@ const WebcamDetector = ({
 				<canvas
 					ref={canvasRef}
 					className="absolute h-full w-full top-0 left-0"
-					width={width}
-					height={height}
+					width={dimensions.width}
+					height={dimensions.height}
 				/>
 			</div>
 		);
@@ -45,7 +77,7 @@ const WebcamDetector = ({
 		return (
 			<div
 				className="flex flex-col gap-2 justify-center items-center animate-pulse"
-				style={{ width, height }}
+				style={{ width: dimensions.width, height: dimensions.height }}
 			>
 				<svg
 					className="animate-spin"

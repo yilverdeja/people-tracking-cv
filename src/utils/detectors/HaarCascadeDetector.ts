@@ -34,8 +34,6 @@ export default class HaarCascadeDetector extends BaseDetector {
 	}
 
 	async loadModel(): Promise<void> {
-		// await this.loadHaarFaceModels();
-
 		const faceLoaded = await this.faceCascade.load(
 			'haarcascade_frontalface_default.xml'
 		);

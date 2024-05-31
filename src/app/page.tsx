@@ -30,7 +30,7 @@ export default function Home() {
 		if (!webcamRef.current || !canvasRef.current) return;
 		const imageSrc = webcamRef.current!.getScreenshot();
 		if (detector && imageSrc) {
-			await detector.loadModel();
+			await detector.loadModel(); // QUESTION: do I need to load a model everytime?
 			const img = await convertBase64StringToImage(imageSrc);
 			const detections = await detector.detect(img);
 
