@@ -79,8 +79,8 @@ export default function Page() {
 	});
 
 	return (
-		<main className="grid grid-cols-3 gap-4 h-screen">
-			<section className="col-span-2 flex justify-center items-center gap-4 h-screen">
+		<main className="flex flex-col md:grid grid-cols-3 gap-4 h-screen">
+			<section className="md:col-span-2 flex justify-center items-center gap-4 md:h-screen">
 				<WebcamDetector
 					modelLoaded={detector !== null}
 					webcamRef={webcamRef}
@@ -94,7 +94,7 @@ export default function Page() {
 				/>
 			</section>
 
-			<section className="flex flex-col justify-between col-span-1 bg-gray-200 p-8 h-screen overflow-scroll">
+			<section className="flex flex-col justify-between md:col-span-1 bg-gray-200 p-8 h-screen overflow-scroll">
 				<div className="flex flex-col gap-4">
 					<Header />
 					<ThresholdInput

@@ -12,7 +12,7 @@ const techStack = [
 
 const Footer = () => {
 	return (
-		<p className="text-sm">
+		<p className="text-sm text-center">
 			Built with{' '}
 			{techStack.map((tech, index) => (
 				<Fragment key={index}>

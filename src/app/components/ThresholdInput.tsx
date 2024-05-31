@@ -17,7 +17,7 @@ const ThresholdInput = ({
 }: Props) => {
 	return (
 		<article>
-			<label className="text-lg font-bold" htmlFor="threshold">
+			<label className="text-md md:text-lg font-bold" htmlFor="threshold">
 				{name} {unit && <span>({unit})</span>}
 			</label>
 			<div className="flex flex-row gap-2">

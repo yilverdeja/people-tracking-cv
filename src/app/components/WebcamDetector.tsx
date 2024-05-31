@@ -80,7 +80,7 @@ const WebcamDetector = ({
 		return (
 			<div
 				ref={containerRef}
-				className="flex flex-col justify-center items-center w-full h-full m-4"
+				className="flex flex-col justify-start md:justify-center items-center w-full h-full mx-4 md:m-4"
 			>
 				<article
 					className="relative"
@@ -120,7 +120,7 @@ const WebcamDetector = ({
 					/>
 				</article>
 				<div
-					className="flex flex-row justify-between"
+					className="flex flex-col md:flex-row justify-between"
 					style={{
 						width: dimensions.width
 							? dimensions.width
@@ -135,8 +135,10 @@ const WebcamDetector = ({
 						</p>
 					</div>
 					<div className="flex flex-row gap-2">
-						<p>{fps}</p>
-						<p className="font-bold">FPS</p>
+						<p className="order-2 md:order-1">{fps}</p>
+						<p className="order-1 md:order-2 font-bold flex justify-center items-center">
+							FPS<span className="block md:hidden">:</span>
+						</p>
 					</div>
 				</div>
 			</div>
