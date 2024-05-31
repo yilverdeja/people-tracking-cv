@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import WebcamDetector from '../components/WebcamDetector';
-import ObjectDetector from '@/cocossdObjectDetection';
+import ObjectDetector from '@/utils/detectors/cocossdObjectDetection';
 import { drawBoundingBox } from '@/utils/canvasUtils';
 import useAnimationFrame from '@/hooks/useAnimationFrame';
 

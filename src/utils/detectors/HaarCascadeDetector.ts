@@ -1,5 +1,8 @@
 import cv from '@techstark/opencv-js';
-import { loadDataFile } from './cvDataFile';
+import BaseDetector from './BaseDetector';
+import { loadDataFile } from '../cvDataFile';
+
+type Detection = { faces: cv.Rect[]; eyes: cv.Rect[][] };
 
 export async function loadHaarFaceModels() {
 	try {
@@ -15,29 +18,24 @@ export async function loadHaarFaceModels() {
 	}
 }
 
-export class FaceDetector {
-	// loads classifiers once to be reused
+export default class HaarCascadeDetector extends BaseDetector {
+	private classifiersLoaded: boolean = false;
 	private faceCascade: cv.CascadeClassifier;
 	private eyeCascade: cv.CascadeClassifier;
 	scaleFactor: number;
 	minNeighbors: number;
 
 	constructor() {
+		super();
 		this.faceCascade = new cv.CascadeClassifier();
 		this.eyeCascade = new cv.CascadeClassifier();
 		this.scaleFactor = 1.1;
 		this.minNeighbors = 3;
 	}
 
-	setScaleFactor(scaleFactor: number): void {
-		this.scaleFactor = scaleFactor;
-	}
+	async loadModel(): Promise<void> {
+		// await this.loadHaarFaceModels();
 
-	setMinNeighbors(minNeighbors: number): void {
-		this.minNeighbors = minNeighbors;
-	}
-
-	async loadClassifiers(): Promise<void> {
 		const faceLoaded = await this.faceCascade.load(
 			'haarcascade_frontalface_default.xml'
 		);
@@ -46,15 +44,23 @@ export class FaceDetector {
 		if (!faceLoaded || !eyeLoaded) {
 			throw new Error('Failed to load classifiers.');
 		}
+
+		this.classifiersLoaded = true;
 	}
 
-	async detectFaces(
-		img: cv.Mat
-	): Promise<{ faces: cv.Rect[]; eyes: cv.Rect[][] }> {
+	async detect(imageElement: HTMLImageElement): Promise<Detection> {
+		if (!this.classifiersLoaded) {
+			throw new Error('Models are not loaded');
+		}
+
+		// convert image to a Mat
+		const img = cv.imread(imageElement);
+
 		// create gray image
 		const gray = new cv.Mat();
 		cv.cvtColor(img, gray, cv.COLOR_RGBA2GRAY, 0);
 
+		// start detection
 		const faces = new cv.RectVector();
 		const msize = new cv.Size(0, 0);
 		this.faceCascade.detectMultiScale(
@@ -67,7 +73,7 @@ export class FaceDetector {
 			msize
 		);
 
-		const detections: { faces: cv.Rect[]; eyes: cv.Rect[][] } = {
+		const detections: Detection = {
 			faces: [],
 			eyes: [],
 		};
@@ -101,8 +107,11 @@ export class FaceDetector {
 		return detections;
 	}
 
-	dispose(): void {
-		this.faceCascade.delete();
-		this.eyeCascade.delete();
+	setScaleFactor(scaleFactor: number): void {
+		this.scaleFactor = scaleFactor;
+	}
+
+	setMinNeighbors(minNeighbors: number): void {
+		this.minNeighbors = minNeighbors;
 	}
 }

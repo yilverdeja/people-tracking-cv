@@ -1,17 +1,19 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import Webcam from 'react-webcam';
-import cv from '@techstark/opencv-js';
 import { useEffect, useRef, useState } from 'react';
-import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 import WebcamDetector from './components/WebcamDetector';
 import { drawBoundingBox } from '@/utils/canvasUtils';
 import useAnimationFrame from '@/hooks/useAnimationFrame';
+import HaarCascadeDetector, {
+	loadHaarFaceModels,
+} from '@/utils/detectors/HaarCascadeDetector';
+import { convertBase64StringToImage } from '@/utils/convertImage';
 
 const minNeighborsThresholds = [2, 3, 4, 5];
 
 export default function Home() {
-	const [detector, setDetector] = useState<FaceDetector | null>(null);
+	const [detector, setDetector] = useState<HaarCascadeDetector | null>(null);
 	const [threshold, setThreshold] = useState(2);
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,7 +21,7 @@ export default function Home() {
 	// Load Model
 	useEffect(() => {
 		loadHaarFaceModels().then(() => {
-			setDetector(new FaceDetector());
+			setDetector(new HaarCascadeDetector());
 		});
 	}, []);
 
@@ -28,15 +30,9 @@ export default function Home() {
 		if (!webcamRef.current || !canvasRef.current) return;
 		const imageSrc = webcamRef.current!.getScreenshot();
 		if (detector && imageSrc) {
-			const img = new Image();
-
-			img.src = imageSrc;
-			await new Promise((resolve) => {
-				img.onload = resolve;
-			});
-			const imgMat = cv.imread(img);
-			await detector.loadClassifiers();
-			const detections = await detector.detectFaces(imgMat);
+			await detector.loadModel();
+			const img = await convertBase64StringToImage(imageSrc);
+			const detections = await detector.detect(img);
 
 			const context = canvasRef.current!.getContext('2d')!;
 			context.clearRect(
@@ -70,8 +66,6 @@ export default function Home() {
 					);
 				});
 			});
-
-			imgMat.delete();
 		}
 	};
 
