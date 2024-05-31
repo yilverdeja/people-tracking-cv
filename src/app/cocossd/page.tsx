@@ -4,6 +4,7 @@ import Webcam from 'react-webcam';
 import WebcamDetector from '../components/WebcamDetector';
 import ObjectDetector from '@/cocossdObjectDetection';
 import { drawBoundingBox } from '@/utils/canvasUtils';
+import useAnimationFrame from '@/hooks/useAnimationFrame';
 
 const minScoreThresholds = [0.3, 0.5, 0.7, 0.9];
 
@@ -24,14 +25,10 @@ export default function Page() {
 		initDetector();
 	}, []);
 
-	// Use Model for Detection
-	useEffect(() => {
-		if (!detector) return;
-
-		const detectObjects = async () => {
-			const imageSrc = webcamRef.current!.getScreenshot();
-			if (!imageSrc) return;
-
+	const handleDetection = async () => {
+		if (!webcamRef.current || !canvasRef.current) return;
+		const imageSrc = webcamRef.current!.getScreenshot();
+		if (detector && imageSrc) {
 			const img = new Image();
 			img.src = imageSrc;
 			await new Promise((resolve) => {
@@ -57,21 +54,12 @@ export default function Page() {
 					const [x, y, width, height] = prediction.bbox;
 					drawBoundingBox(context, x, y, width, height, 'red', 2);
 				});
-		};
+		}
+	};
 
-		let handle: number;
-		const nextTick = () => {
-			handle = requestAnimationFrame(async () => {
-				await detectObjects();
-				nextTick();
-			});
-		};
-
-		nextTick();
-		return () => {
-			cancelAnimationFrame(handle);
-		};
-	}, [detector]);
+	useAnimationFrame(() => {
+		handleDetection();
+	});
 
 	return (
 		<>

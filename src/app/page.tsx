@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FaceDetector, loadHaarFaceModels } from '@/haarFaceDetection';
 import WebcamDetector from './components/WebcamDetector';
 import { drawBoundingBox } from '@/utils/canvasUtils';
+import useAnimationFrame from '@/hooks/useAnimationFrame';
 
 const minNeighborsThresholds = [2, 3, 4, 5];
 
@@ -23,13 +24,10 @@ export default function Home() {
 	}, []);
 
 	// Use Model
-	useEffect(() => {
-		if (!detector) return;
-
-		const detectFace = async () => {
-			const imageSrc = webcamRef.current!.getScreenshot();
-			if (!imageSrc) return;
-
+	const handleDetection = async () => {
+		if (!webcamRef.current || !canvasRef.current) return;
+		const imageSrc = webcamRef.current!.getScreenshot();
+		if (detector && imageSrc) {
 			const img = new Image();
 
 			img.src = imageSrc;
@@ -74,21 +72,12 @@ export default function Home() {
 			});
 
 			imgMat.delete();
-		};
+		}
+	};
 
-		let handle: number;
-		const nextTick = () => {
-			handle = requestAnimationFrame(async () => {
-				await detectFace();
-				nextTick();
-			});
-		};
-
-		nextTick();
-		return () => {
-			cancelAnimationFrame(handle);
-		};
-	}, [detector]);
+	useAnimationFrame(() => {
+		handleDetection();
+	});
 
 	return (
 		<main>
