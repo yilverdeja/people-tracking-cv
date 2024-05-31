@@ -8,14 +8,23 @@ import HaarCascadeDetector, {
 	loadHaarFaceModels,
 } from '@/utils/detectors/HaarCascadeDetector';
 import { convertBase64StringToImage } from '@/utils/convertImage';
-
-const minNeighborsThresholds = [2, 3, 4, 5];
+import Header from '../components/Header';
+import ThresholdInput from '../components/ThresholdInput';
+import Footer from '../components/Footer';
 
 export default function Home() {
 	const [detector, setDetector] = useState<HaarCascadeDetector | null>(null);
-	const [threshold, setThreshold] = useState(2);
+	const [threshold, setThreshold] = useState(3);
+	const [framesPerSecond, setFramesPerSecond] = useState(0);
+	const animationFrameCount = useRef(0);
+	const lastTime = useRef(Date.now());
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	const handleThresholdChange = (newThreshold: number) => {
+		if (detector) detector.setMinNeighbors(newThreshold);
+		setThreshold(newThreshold);
+	};
 
 	// Load Model
 	useEffect(() => {
@@ -69,41 +78,45 @@ export default function Home() {
 	};
 
 	useAnimationFrame(() => {
+		const now = Date.now();
+		const elapsed = now - lastTime.current;
+		if (elapsed >= 1000) {
+			// If more than a second has passed
+			setFramesPerSecond(animationFrameCount.current); // Set the FPS based on the number of frames counted
+			animationFrameCount.current = 0; // Reset frame count for the next second
+			lastTime.current = now; // Reset the timer
+		}
+
+		animationFrameCount.current++;
+
 		handleDetection();
 	});
 
 	return (
-		<main>
-			<h1 className="text-3xl font-bold">People Tracker</h1>
-			<h2 className="text-xl">
-				Change the threshold to filter the detected objects
-			</h2>
-			<WebcamDetector
-				modelLoaded={detector !== null}
-				webcamRef={webcamRef}
-				canvasRef={canvasRef}
-			/>
-			{detector && (
-				<div>
-					<p>Set Min Neighbors</p>
-					<div className="grid grid-cols-5">
-						{minNeighborsThresholds.map((t, index) => (
-							<button
-								key={index}
-								className="rounded-md bg-blue-400 m-2 py-4 px-8 disabled:bg-gray-400"
-								type="button"
-								onClick={() => {
-									setThreshold(t);
-									detector?.setMinNeighbors(t);
-								}}
-								disabled={threshold === t}
-							>
-								{t}
-							</button>
-						))}
-					</div>
+		<main className="grid grid-cols-3 gap-4 h-screen">
+			<section className="col-span-2 flex justify-center items-center gap-4 h-screen">
+				<WebcamDetector
+					modelLoaded={detector !== null}
+					webcamRef={webcamRef}
+					canvasRef={canvasRef}
+					threshold={detector ? detector.minNeighbors : threshold}
+					fps={framesPerSecond}
+				/>
+			</section>
+
+			<section className="flex flex-col justify-between col-span-1 bg-gray-200 p-8 h-screen overflow-scroll">
+				<div className="flex flex-col gap-4">
+					<Header />
+					<ThresholdInput
+						min={1}
+						max={10}
+						name="Minimum Neighbors"
+						threshold={threshold}
+						onChange={handleThresholdChange}
+					/>
 				</div>
-			)}
+				<Footer />
+			</section>
 		</main>
 	);
 }

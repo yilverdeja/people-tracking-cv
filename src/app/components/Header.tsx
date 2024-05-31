@@ -14,7 +14,7 @@ const Header = () => {
 					objects defined in the COCO dataset, which is a large-scale
 					object detection, segmentation, and captioning dataset.
 				</p>
-				<p>
+				{/* <p>
 					The detected objects will appear in bounding boxes. Tune the
 					minimum score to only show{' '}
 					<span className="font-semibold">person</span> objects
@@ -22,7 +22,7 @@ const Header = () => {
 					a bounding box will appear if the model is at least 5%
 					confident the object is a{' '}
 					<span className="font-semibold">person</span>{' '}
-				</p>
+				</p> */}
 			</div>
 		</header>
 	);

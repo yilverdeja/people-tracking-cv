@@ -98,6 +98,10 @@ export default function Page() {
 				<div className="flex flex-col gap-4">
 					<Header />
 					<ThresholdInput
+						min={1}
+						max={99}
+						name="Minimum Confidence Score"
+						unit="%"
 						threshold={threshold}
 						onChange={handleThresholdChange}
 					/>

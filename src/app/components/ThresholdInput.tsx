@@ -1,13 +1,24 @@
 interface Props {
 	threshold: number;
+	min: number;
+	max: number;
+	name: string;
+	unit?: string;
 	onChange: (threshold: number) => void;
 }
 
-const ThresholdInput = ({ threshold, onChange }: Props) => {
+const ThresholdInput = ({
+	min,
+	max,
+	name,
+	unit = undefined,
+	threshold,
+	onChange,
+}: Props) => {
 	return (
 		<article>
 			<label className="text-lg font-bold" htmlFor="threshold">
-				Minimum Confidence Score (%)
+				{name} {unit && <span>({unit})</span>}
 			</label>
 			<div className="flex flex-row gap-2">
 				<input
@@ -15,8 +26,8 @@ const ThresholdInput = ({ threshold, onChange }: Props) => {
 					type="number"
 					name="threshold"
 					id="threshold"
-					min={1}
-					max={99}
+					min={min}
+					max={max}
 					step={1}
 					value={threshold}
 					onChange={(event) => onChange(parseInt(event.target.value))}

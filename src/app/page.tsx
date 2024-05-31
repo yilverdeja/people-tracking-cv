@@ -33,6 +33,9 @@ export default function Home() {
 				<div className="flex flex-col gap-4">
 					<Header />
 					<ThresholdInput
+						min={1}
+						max={10}
+						name="Threshold"
 						threshold={threshold}
 						onChange={handleThresholdChange}
 					/>
