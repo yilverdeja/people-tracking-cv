@@ -20,46 +20,27 @@ const WebcamDetector = ({
 }: Props) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [dimensions, setDimensions] = useState({ width: 640, height: 360 });
-	// const [maxDimensions, setMaxDimensions] = useState({
-	// 	width: window.innerWidth,
-	// 	height: window.innerHeight,
-	// });
-
-	// useEffect(() => {
-	// 	if (containerRef.current) {
-	// 		setMaxDimensions({
-	// 			width: containerRef.current.offsetWidth,
-	// 			height: containerRef.current.offsetHeight,
-	// 		});
-	// 	}
-	// }, [containerRef]);
 
 	// sets the width and height based on the webcam video size
 	const updateVideoDimensions = () => {
 		if (webcamRef.current && webcamRef.current.video) {
 			const video = webcamRef.current.video;
 			const aspectRatio = video.videoWidth / video.videoHeight;
+			const container = containerRef.current;
+			if (!container) return;
 
-			const maximumWidth = containerRef.current
-				? containerRef.current.offsetWidth
-				: window.innerWidth;
-			const maximumHeight = containerRef.current
-				? containerRef.current.offsetHeight
-				: window.innerHeight;
+			let { width, height } = container.getBoundingClientRect();
 
-			let width, height;
-
-			if (aspectRatio > 1) {
-				// Landscape orientation
-				width = Math.min(640, maximumWidth);
-				height = width / aspectRatio;
-			} else {
-				// Portrait orientation
-				height = Math.min(360, maximumHeight);
+			if (width / height > aspectRatio) {
+				// landscape mode
+				// Container is wider than needed, adjust width based on height
 				width = height * aspectRatio;
+			} else {
+				// portrait mode
+				// Container is taller than needed, adjust height based on width
+				height = width / aspectRatio;
 			}
 
-			console.log(width, height);
 			setDimensions({ width, height });
 		}
 	};
@@ -73,13 +54,27 @@ const WebcamDetector = ({
 
 	// updates the dimensions when the video is loaded
 	useEffect(() => {
-		if (webcamRef.current) {
-			webcamRef.current.video?.addEventListener(
+		const videoElement = webcamRef.current?.video;
+
+		if (!videoElement) return;
+
+		const handleLoadedMetadata = () => {
+			updateVideoDimensions();
+		};
+
+		videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+		// Call once immediately in case the video is already loaded
+		// or the metadata loads before the event listener is set
+		updateVideoDimensions();
+
+		return () => {
+			videoElement.removeEventListener(
 				'loadedmetadata',
-				updateVideoDimensions
+				handleLoadedMetadata
 			);
-		}
-	}, [webcamRef]);
+		};
+	}, [webcamRef.current]); // Dependency on the webcamRef itself
 
 	if (modelLoaded)
 		return (
@@ -90,8 +85,12 @@ const WebcamDetector = ({
 				<article
 					className="relative"
 					style={{
-						width: dimensions.width,
-						height: dimensions.height,
+						width: dimensions.width
+							? dimensions.width
+							: containerRef.current?.offsetWidth,
+						height: dimensions.height
+							? dimensions.height
+							: containerRef.current?.offsetHeight,
 					}}
 				>
 					<Webcam
@@ -108,14 +107,24 @@ const WebcamDetector = ({
 					<canvas
 						ref={canvasRef}
 						className="absolute h-full w-full top-0 left-0"
-						width={dimensions.width}
-						height={dimensions.height}
+						width={
+							dimensions.width
+								? dimensions.width
+								: containerRef.current?.offsetWidth
+						}
+						height={
+							dimensions.height
+								? dimensions.height
+								: containerRef.current?.offsetHeight
+						}
 					/>
 				</article>
 				<div
 					className="flex flex-row justify-between"
 					style={{
-						width: dimensions.width,
+						width: dimensions.width
+							? dimensions.width
+							: containerRef.current?.offsetWidth,
 					}}
 				>
 					<div className="flex flex-row gap-2">
@@ -136,7 +145,14 @@ const WebcamDetector = ({
 		return (
 			<div
 				className="flex flex-col gap-2 justify-center items-center animate-pulse"
-				style={{ width: dimensions.width, height: dimensions.height }}
+				style={{
+					width: dimensions.width
+						? dimensions.width
+						: containerRef.current?.offsetWidth,
+					height: dimensions.height
+						? dimensions.height
+						: containerRef.current?.offsetHeight,
+				}}
 			>
 				<svg
 					className="animate-spin"

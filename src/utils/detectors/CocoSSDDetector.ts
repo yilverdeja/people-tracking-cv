@@ -5,8 +5,8 @@ import BaseDetector from './BaseDetector';
 
 export default class CocoSSDDetector extends BaseDetector {
 	private model: cocoSsd.ObjectDetection | null = null;
-	private maxNumBoxes: number;
-	private minScore: number;
+	maxNumBoxes: number;
+	minScore: number;
 
 	constructor() {
 		super();

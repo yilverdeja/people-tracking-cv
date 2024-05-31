@@ -1,19 +1,29 @@
 'use client';
+
 import { useEffect, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
-import WebcamDetector from '../components/WebcamDetector';
-import { drawBoundingBox } from '@/utils/canvasUtils';
 import useAnimationFrame from '@/hooks/useAnimationFrame';
-import CocoSSDDetector from '@/utils/detectors/CocoSSDDetector';
+import { drawBoundingBox } from '@/utils/canvasUtils';
 import { convertBase64StringToImage } from '@/utils/convertImage';
-
-const minScoreThresholds = [0.3, 0.5, 0.7, 0.9];
+import CocoSSDDetector from '@/utils/detectors/CocoSSDDetector';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
+import ThresholdInput from '../components/ThresholdInput';
+import WebcamDetector from '../components/WebcamDetector';
 
 export default function Page() {
+	const [threshold, setThreshold] = useState(50);
+	const [framesPerSecond, setFramesPerSecond] = useState(0);
+	const animationFrameCount = useRef(0);
+	const lastTime = useRef(Date.now());
 	const [detector, setDetector] = useState<CocoSSDDetector | null>(null);
-	const [minScore, setMinScore] = useState(0.5);
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	const handleThresholdChange = (newThreshold: number) => {
+		if (detector) detector.setMinScore(newThreshold / 100);
+		setThreshold(newThreshold);
+	};
 
 	// Load the model
 	useEffect(() => {
@@ -55,38 +65,45 @@ export default function Page() {
 	};
 
 	useAnimationFrame(() => {
+		const now = Date.now();
+		const elapsed = now - lastTime.current;
+		if (elapsed >= 1000) {
+			// If more than a second has passed
+			setFramesPerSecond(animationFrameCount.current); // Set the FPS based on the number of frames counted
+			animationFrameCount.current = 0; // Reset frame count for the next second
+			lastTime.current = now; // Reset the timer
+		}
+
+		animationFrameCount.current++;
 		handleDetection();
 	});
 
 	return (
-		<>
-			<p>CocoSSD Page</p>
-			<WebcamDetector
-				modelLoaded={detector !== null}
-				webcamRef={webcamRef}
-				canvasRef={canvasRef}
-			/>
-			{detector && (
-				<div>
-					<p>Set Min Score</p>
-					<div className="grid grid-cols-5">
-						{minScoreThresholds.map((t, index) => (
-							<button
-								key={index}
-								className="rounded-md bg-blue-400 m-2 py-4 px-8 disabled:bg-gray-400"
-								type="button"
-								onClick={() => {
-									setMinScore(t);
-									detector?.setMinScore(t);
-								}}
-								disabled={minScore === t}
-							>
-								{t}
-							</button>
-						))}
-					</div>
+		<main className="grid grid-cols-3 gap-4 h-screen">
+			<section className="col-span-2 flex justify-center items-center gap-4 h-screen">
+				<WebcamDetector
+					modelLoaded={detector !== null}
+					webcamRef={webcamRef}
+					canvasRef={canvasRef}
+					threshold={
+						detector
+							? Math.round(detector.minScore * 100)
+							: threshold
+					}
+					fps={framesPerSecond}
+				/>
+			</section>
+
+			<section className="flex flex-col justify-between col-span-1 bg-gray-200 p-8 h-screen overflow-scroll">
+				<div className="flex flex-col gap-4">
+					<Header />
+					<ThresholdInput
+						threshold={threshold}
+						onChange={handleThresholdChange}
+					/>
 				</div>
-			)}
-		</>
+				<Footer />
+			</section>
+		</main>
 	);
 }

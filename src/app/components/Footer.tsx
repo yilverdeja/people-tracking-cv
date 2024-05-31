@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 const techStack = [
 	{ name: 'NextJS', url: 'https://nextjs.org/' },
 	{ name: 'ReactJS', url: 'https://react.dev/' },
@@ -13,7 +15,7 @@ const Footer = () => {
 		<p className="text-sm">
 			Built with{' '}
 			{techStack.map((tech, index) => (
-				<>
+				<Fragment key={index}>
 					<a
 						className="hover:underline"
 						href={tech.url}
@@ -26,7 +28,7 @@ const Footer = () => {
 						: index === techStack.length - 2
 						? ' & '
 						: ''}
-				</>
+				</Fragment>
 			))}
 		</p>
 	);
