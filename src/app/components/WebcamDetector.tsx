@@ -19,12 +19,16 @@ const WebcamDetector = ({ modelLoaded, webcamRef, canvasRef }: Props) => {
 		if (webcamRef.current && webcamRef.current.video) {
 			const video = webcamRef.current.video;
 			const aspectRatio = video.videoWidth / video.videoHeight;
-			let width = 640;
-			let height = Math.round(width / aspectRatio);
+			let width, height;
 
-			if (window.innerWidth < 640) {
-				width = window.innerWidth;
-				height = Math.round(width / aspectRatio);
+			if (aspectRatio > 1) {
+				// Landscape orientation
+				width = Math.min(640, window.innerWidth);
+				height = width / aspectRatio;
+			} else {
+				// Portrait orientation
+				height = Math.min(360, window.innerHeight);
+				width = height * aspectRatio;
 			}
 
 			setDimensions({ width, height });
@@ -56,18 +60,18 @@ const WebcamDetector = ({ modelLoaded, webcamRef, canvasRef }: Props) => {
 			>
 				<Webcam
 					ref={webcamRef}
-					className="absolute h-full w-full top-0 left-0"
+					className="absolute h-full w-full top-0 left-0 border-2 border-black-400"
 					screenshotFormat="image/jpeg"
 					videoConstraints={{
-						width: 1280,
-						height: 720,
+						width: { ideal: 1280 },
+						height: { ideal: 720 },
 						facingMode: 'user',
 					}}
 					mirrored
 				/>
 				<canvas
 					ref={canvasRef}
-					className="absolute h-full w-full top-0 left-0"
+					className="absolute h-full w-full top-0 left-0 border-2 border-green-400"
 					width={dimensions.width}
 					height={dimensions.height}
 				/>
