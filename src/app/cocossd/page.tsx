@@ -2,14 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import WebcamDetector from '../components/WebcamDetector';
-import ObjectDetector from '@/utils/detectors/cocossdObjectDetection';
 import { drawBoundingBox } from '@/utils/canvasUtils';
 import useAnimationFrame from '@/hooks/useAnimationFrame';
+import CocoSSDDetector from '@/utils/detectors/CocoSSDDetector';
+import { convertBase64StringToImage } from '@/utils/convertImage';
 
 const minScoreThresholds = [0.3, 0.5, 0.7, 0.9];
 
 export default function Page() {
-	const [detector, setDetector] = useState<ObjectDetector | null>(null);
+	const [detector, setDetector] = useState<CocoSSDDetector | null>(null);
 	const [minScore, setMinScore] = useState(0.5);
 	const webcamRef = useRef<Webcam>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,7 +18,7 @@ export default function Page() {
 	// Load the model
 	useEffect(() => {
 		const initDetector = async () => {
-			const newDetector = new ObjectDetector();
+			const newDetector = new CocoSSDDetector();
 			await newDetector.loadModel();
 			setDetector(newDetector);
 		};
@@ -29,14 +30,10 @@ export default function Page() {
 		if (!webcamRef.current || !canvasRef.current) return;
 		const imageSrc = webcamRef.current!.getScreenshot();
 		if (detector && imageSrc) {
-			const img = new Image();
-			img.src = imageSrc;
-			await new Promise((resolve) => {
-				img.onload = resolve;
-			});
+			const img = await convertBase64StringToImage(imageSrc);
 
 			// get predictions from screenshot
-			const predictions = await detector.detectObjects(img);
+			const predictions = await detector.detect(img);
 
 			// clear canvas
 			const context = canvasRef.current!.getContext('2d')!;
