@@ -1,4 +1,7 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/aa078c15-1dfe-4769-8f68-081b524e56e2/deploy-status)](https://app.netlify.com/sites/dainty-gaufre-59043c/deploys)
 # Person Detection CV Web App
+
+![image](https://github.com/yilverdeja/people-tracking-cv/assets/29952939/ba6bde22-8ca3-4dd0-a36d-ccc0c2a87f52)
 
 This is a web application using React and Next.js that utilizes computer vision to detect and track people in real-time using the webcam as a video source. The application allows users to set a minimum confidence threshold to filter the detected objects and display them with bounding boxes.
 
@@ -63,19 +66,25 @@ Specifically, the canvas element is not laid over correctly over the webcam and 
 
 This was my first time developing an OpenCV application, especially one in the browser with ReactJS and NextJS.
 
-#### Haar Cascade Models
+### Haar Cascade Models
 
 I initially implemented full-face and eyes detection with OpenCV.js and the Haar Cascade Models, however it was very slow, laggy and often blocked the UI. In addition, there wasn't an ability for setting the confidence level.
 
 To improve the detection with this model, it would be good to create a web worker on a seperate thread and make the browser more accessible and interactible.
 
-#### Coco SSD & TensorFlow.js
+### Coco SSD & TensorFlow.js
 
-I learned how to implement the tensor flow pre-trained Coco SSD model on the browser with the help from this [repository](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd).
+I learned how to implement the tensor flow pre-trained Coco SSD model on the browser with the help from this [repository](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd). A future improvement would be to allow users to update other parameters from this model, and also create other `Detector` classes based off the provided Tensor Flow JS models. 
 
-#### YoloV5 & TensorFlow.js
+### YoloV5 & TensorFlow.js
 
-A future improvement would be to use the YoloV5 model instead with help from this [repository](https://github.com/Hyuto/yolov5-tfjs).
+A future improvement would be to use the YoloV5 model. Take a look at this guide from this [repository](https://github.com/Hyuto/yolov5-tfjs).
+
+### Bounding Boxes
+It would be good to provide more information in the bounding boxes, such as the type of object detected (i.e. "person"), and the confidence level.
+
+### Mobile Friendly
+Update the `WebcamDetector` component so it can work on mobile phones. In addition, update the UI to make it more user friendly to use on Mobile.
 
 ## Remarks
 
